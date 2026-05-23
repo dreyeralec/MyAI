@@ -12,7 +12,7 @@ export class UsersRepository {
 
     //create
     async create(firebase_uuid: string, username: string, email: string) {
-        return this.prisma.user.create({
+        return this.prisma.users.create({
             data: { 
                 firebase_uuid: firebase_uuid,
                 username: username,
@@ -22,36 +22,36 @@ export class UsersRepository {
     }
 
     //delete
-    async delete(id: number) {
-        return this.prisma.user.delete({
-            where: { user_id: id }
+    async delete(user_id: number) {
+        return this.prisma.users.delete({
+            where: { user_id: user_id }
         });
     }
 
     //find by user_id
-    async findById(id: number) {
-        return this.prisma.user.findUnique({
-            where: { user_id: id }
+    async findById(user_id: number) {
+        return this.prisma.users.findUnique({
+            where: { user_id: user_id }
         });
     }
 
     //find by firebase_uuid
-    async findByFirebaseUuid(id: string) {
-        return this.prisma.user.findUnique({
-            where: { firebase_uuid: id }
+    async findByFirebaseUuid(firebase_uuid: string) {
+        return this.prisma.users.findUnique({
+            where: { firebase_uuid: firebase_uuid }
         });
     }
 
     //find by email
     async findByEmail(email: string) {
-        return this.prisma.user.findUnique({
+        return this.prisma.users.findUnique({
             where: { email: email }
         });
     }
 
     //find by username
     async findByUsername(username: string) {
-        return this.prisma.user.findUnique({
+        return this.prisma.users.findUnique({
             where: { username: username }
         });
     }

@@ -11,35 +11,35 @@ export class PromptsRepository {
     constructor(private readonly prisma: PrismaService) {}
 
     //find all
-    async findAll() {
+    findAll() {
         return this.prisma.prompt.findMany();
     }
 
     //find all by user_id
-    async findAllByUserId(id: number) {
+    findAllByUserId(user_id: number) {
         return this.prisma.prompt.findMany({
-            where: { user_id: id }
+            where: { user_id: user_id }
         });
     }
 
     //find by prompt_id
-    async findById(id: number) {
+    findById(prompt_id: number) {
         return this.prisma.prompt.findUnique({
-            where: { prompt_id: id },
+            where: { prompt_id: prompt_id },
         });
     }
 
     //create
-    async create(id: number, name: string, prompt: string) {
+    create(user_id: number, name: string, prompt: string) {
         return this.prisma.prompt.create({
-            data: { user_id: id, name: name, prompt: prompt }
+            data: { user_id: user_id, name: name, prompt: prompt }
         })
     }
 
     //delete
-    async delete(id: number) {
+    delete(prompt_id: number) {
         return this.prisma.prompt.delete({
-            where: { prompt_id: id }
+            where: { prompt_id: prompt_id }
         })
     }
 }

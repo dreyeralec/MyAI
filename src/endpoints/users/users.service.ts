@@ -48,7 +48,7 @@ export class UsersService {
     //find by user_id
     findById(id: number) {
         if (!id || id < 1) {
-            throw new BadRequestException('Invalid userID');
+            throw new BadRequestException('Invalid user id');
         }
 
         return this.usersRepository.findById(id)

@@ -22,19 +22,19 @@ export class PromptsController {
 
     //find unique
     @Get(':id')
-    findById(@Param('id') id: string) {
-        return this.promptsService.findById(Number(id));
+    findById(@Param('id') prompt_id: string) {
+        return this.promptsService.findById(Number(prompt_id));
     }
 
     //create
     @Post()
-    create(@Body() body: { id: number; name: string; prompt: string }) {
-        return this.promptsService.create(body.id, body.name, body.prompt);
+    create(@Body() body: { user_id: number; name: string; prompt: string }) {
+        return this.promptsService.create(body.user_id, body.name, body.prompt);
     }
 
     //delete
     @Delete(':id')
-    delete(@Param('id') id: string) {
-        return this.promptsService.delete(Number(id));
+    delete(@Param('id') prompt_id: number) {
+        return this.promptsService.delete(Number(prompt_id));
     }
 }

@@ -11,7 +11,7 @@ export class UsersRepository {
     constructor(private readonly prisma: PrismaService) {}
 
     //create
-    async create(firebase_uuid: string, username: string, email: string) {
+    create(firebase_uuid: string, username: string, email: string) {
         return this.prisma.users.create({
             data: { 
                 firebase_uuid: firebase_uuid,
@@ -22,35 +22,35 @@ export class UsersRepository {
     }
 
     //delete
-    async delete(user_id: number) {
+    delete(user_id: number) {
         return this.prisma.users.delete({
             where: { user_id: user_id }
         });
     }
 
     //find by user_id
-    async findById(user_id: number) {
+    findById(user_id: number) {
         return this.prisma.users.findUnique({
             where: { user_id: user_id }
         });
     }
 
     //find by firebase_uuid
-    async findByFirebaseUuid(firebase_uuid: string) {
+    findByFirebaseUuid(firebase_uuid: string) {
         return this.prisma.users.findUnique({
             where: { firebase_uuid: firebase_uuid }
         });
     }
 
     //find by email
-    async findByEmail(email: string) {
+    findByEmail(email: string) {
         return this.prisma.users.findUnique({
             where: { email: email }
         });
     }
 
     //find by username
-    async findByUsername(username: string) {
+    findByUsername(username: string) {
         return this.prisma.users.findUnique({
             where: { username: username }
         });

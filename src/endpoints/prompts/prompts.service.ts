@@ -11,38 +11,38 @@ export class PromptsService {
     constructor(private readonly promptsRepository: PromptsRepository) {}
 
     //find all
-    async findAll() {
-        return await this.promptsRepository.findAll();
+    findAll() {
+        return this.promptsRepository.findAll();
     }
 
     //find unique
-    async findById(id: number) {
-        if (!id || id < 1) {
+    findById(prompt_id: number) {
+        if (!prompt_id || prompt_id < 1) {
             throw new BadRequestException('Invalid user id');
         }
 
-        return await this.promptsRepository.findById(id);
+        return this.promptsRepository.findById(prompt_id);
     }
 
     //create
-    async create(id: number, name: string, prompt: string) {
-        if (!id || id < 1) {
+    create(user_id: number, name: string, prompt: string) {
+        if (!user_id || user_id < 1) {
             throw new BadRequestException('Invalid user id');
         }
 
-        if (!prompt || prompt.trim().trim.length < 5) {
+        if (!prompt || prompt.trim().length < 5) {
             throw new BadRequestException('Invalid prompt')
         }
 
-        return await this.promptsRepository.create(id, name, prompt);
+        return this.promptsRepository.create(user_id, name, prompt);
     }
 
     //delete
-    async delete(id: number) {
-        if (!id || id < 1) {
+    delete(prompt_id: number) {
+        if (!prompt_id || prompt_id < 1) {
             throw new BadRequestException('Invalid user id');
         }
 
-        return await this.promptsRepository.delete(id);
+        return this.promptsRepository.delete(prompt_id);
     }
 }

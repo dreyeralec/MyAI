@@ -22,7 +22,7 @@ import { SessionsRepository, MessagesRepository } from './repos';
 import { PromptsRepository } from "../prompts/prompts.repository";
 
 //utils
-import { openAiChat } from "src/lib/models-util";
+import { openAiChat } from "src/lib/models";
 
 @Injectable()
 export class ChatsService {

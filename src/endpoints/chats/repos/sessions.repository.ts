@@ -39,7 +39,7 @@ export class SessionsRepository {
         });
     }
 
-    //find by user_id
+    //find sessions by user_id
     async findByUserId(user_id: number) {
         return this.prisma.chat_sessions.findMany({
             where: {
@@ -48,4 +48,23 @@ export class SessionsRepository {
         });
     }
 
+    //find sessions by prompt_id
+    async findByPromptId(prompt_id: number) {
+        return this.prisma.chat_sessions.findMany({
+            where: {
+                prompt_id: prompt_id,
+            }
+        });
+    }
+
+    async updateTimestamp(session_id: number) {
+        return this.prisma.chat_sessions.update({
+            data: {
+                updated_at: new Date(),
+            },
+            where: {
+                session_id: session_id,
+            },
+        });
+    }
 }

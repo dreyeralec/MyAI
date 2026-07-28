@@ -1,28 +1,28 @@
-/*
-WHERE THE MAGIC HAPPENS
-
-called from chats controller, this will take the chat passed from the controller
-and look in the db to find the chat history, then will contact the model endpoint
-and pass it the prompt, chat history (or simple context system?) and the most recent
-chat by the user, then return the model's response to the controller
-*/
-
-//these arent being mapped 1-1 with the repositories
-
-//Nest
+// Nest
 import {
     Injectable,
     BadRequestException,
     NotFoundException,
-    ServiceUnavailableException
+    ServiceUnavailableException,
+    ForbiddenException
 } from "@nestjs/common";
 
-//Repositories
+// Repositories
 import { SessionsRepository, MessagesRepository } from './repos';
 import { PromptsRepository } from "../prompts/prompts.repository";
 
-//utils
+// Utils
 import { openAiChat } from "src/lib/models";
+
+// Type
+type Message = {
+    message_id: number;
+    session_id: number | null;
+    role: string;
+    content: string;
+    token_count: number | null;
+    created_at: Date | null;
+}
 
 @Injectable()
 export class ChatsService {
@@ -71,21 +71,44 @@ export class ChatsService {
         return this.messagesRepository.delete(message_id);
     }
 
+    //get messages by session id, these come in as strings because
+    //they are search parameters
+    //then reverse the array ()
+    async findBySessionId(session_id: string, take: string) {
+        if (!session_id || Number(session_id) < 1 || isNaN(Number(session_id))) {
+            throw new BadRequestException(`Invalid session id findBySessionID; session id: ${session_id}; type: ${typeof(session_id)}`);
+        }
+
+        if (!take || Number(take) < 1 || isNaN(Number(take))) {
+            throw new BadRequestException(`Invalid take findBySessionID; take: ${take}; type: ${typeof(take)}`);
+        }
+
+        const messages = await this.messagesRepository.findBySessionId(Number(session_id), Number(take));
+
+        let orderedMessages: Message[] = []
+
+        messages.forEach((m) => {
+            orderedMessages.unshift(m)
+        })
+
+        return orderedMessages
+    }
+
     //log message in db, send to model, return model's response
     async getModelResponse(session_id: number, content: string) {
         if (!session_id || session_id < 1) {
-            throw new BadRequestException("Invalid session id");
+            throw new BadRequestException("Invalid session id getModelResponse");
         }
 
         //load the session
-        const session = await this.sessionsRepository.findById(session_id);
+        const session = await this.findSessionById(session_id);
 
         if (!session) {
             throw new NotFoundException("Session not found");
         }
 
         //get chat history (last 15)
-        const history = await this.messagesRepository.findBySessionId(session_id, 15);
+        const history = await this.findBySessionId(String(session_id), String(15));
 
         //get system prompt
         const prompt = await this.promptsRepository.findById(session.prompt_id);
@@ -112,14 +135,17 @@ export class ChatsService {
             const response = await openAiChat(messages);
 
             //create new response message
-            await this.createMessage(
+            const assistant_response = await this.createMessage(
                 session_id,
                 "assistant",
                 response.text,
                 response.usage ? response.usage.output_tokens : null,
             );
 
-            return response.text;
+            //update the updated at field for the session
+            this.sessionsRepository.updateTimestamp(session_id);
+
+            return assistant_response;
         } catch (error) {
             throw new ServiceUnavailableException("Error calling OpenAI API");
         }
@@ -147,6 +173,15 @@ export class ChatsService {
         return this.sessionsRepository.findByUserId(user_id);
     }
 
+    //find sessions by prompt id
+    findSessionsByPromptId(prompt_id: number) {
+        if (!prompt_id || prompt_id < 1) {
+            throw new BadRequestException("Invalid prompt id");
+        }
+
+        return this.sessionsRepository.findByPromptId(prompt_id)
+    }
+
     //create session
     createSession(user_id: number, title: string, prompt_id: number) {
         if (!user_id || user_id < 1) {
@@ -161,10 +196,30 @@ export class ChatsService {
     }
 
     //delete session
-    deleteSession(session_id: number) {
+    async deleteSession(session_id: number, user_id: number) {
         if (!session_id || session_id < 1) {
             throw new BadRequestException("Invalid session id");
         }
+
+        if (!user_id || user_id < 1) {
+            throw new BadRequestException("Invalid user id");
+        }
+
+        const session = await this.sessionsRepository.findById(session_id);
+
+        if (!session) {
+            throw new NotFoundException("Session not found");
+        }
+        
+        if (session.user_id !== user_id) {
+            throw new ForbiddenException("User does not own this session");
+        }
+
+        const messages = await this.messagesRepository.findBySessionId(session_id);
+
+        await Promise.all(
+            messages.map((m) => this.messagesRepository.delete(m.message_id))
+        );
 
         return this.sessionsRepository.delete(session_id);
     }

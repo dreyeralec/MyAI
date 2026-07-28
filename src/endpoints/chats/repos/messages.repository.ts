@@ -41,12 +41,15 @@ export class MessagesRepository {
     }
 
     //find by session_id
-    findBySessionId(session_id: number, take: number) {
+    findBySessionId(session_id: number, take: number | undefined = undefined) {
         return this.prisma.chat_messages.findMany({
             take: take,
             where: {
                 session_id: session_id,
-            }
+            },
+            orderBy: {
+                created_at: 'desc',
+            },
         });
     }
 

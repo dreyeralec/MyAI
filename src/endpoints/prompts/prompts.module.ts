@@ -4,6 +4,9 @@ import { Module } from '@nestjs/common';
 //Repository
 import { PromptsRepository } from './prompts.repository';
 
+//Sessions Repository
+import { SessionsRepository } from '../chats/repos/sessions.repository';
+
 //Service
 import { PromptsService } from './prompts.service';
 
@@ -15,7 +18,7 @@ import { PrismaService } from 'src/lib/prisma/prisma.service';
 
 @Module({
     controllers: [PromptsController],
-    providers: [PrismaService, PromptsService, PromptsRepository],
+    providers: [PrismaService, PromptsService, PromptsRepository, SessionsRepository],
 })
 
 export class PromptsModule { }

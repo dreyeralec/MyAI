@@ -22,8 +22,14 @@ export class PromptsController {
 
     //find unique
     @Get(':id')
-    findById(@Param('id') prompt_id: string) {
+    findById(@Param('id') prompt_id: number) {
         return this.promptsService.findById(Number(prompt_id));
+    }
+
+    //find all by user
+    @Get('user/:id')
+    findAllByUserId(@Param('id') user_id: number) {
+        return this.promptsService.findAllByUserId(Number(user_id))
     }
 
     //create
@@ -34,7 +40,7 @@ export class PromptsController {
 
     //delete
     @Delete(':id')
-    delete(@Param('id') prompt_id: number) {
-        return this.promptsService.delete(Number(prompt_id));
+    delete(@Body() body: { prompt_id: number; user_id: number }) {
+        return this.promptsService.delete(Number(body.prompt_id), Number(body.user_id));
     }
 }

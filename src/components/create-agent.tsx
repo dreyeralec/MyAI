@@ -1,5 +1,14 @@
 // Types
-import { Prompt } from "../lib/types"
+import { Prompt } from "../lib/types";
+
+// Notifications
+import { Notifications } from "@mantine/notifications";
+
+// React
+import { useState } from "react";
+
+// Config
+import { API_URL } from "../config";
 
 // Mantine
 import {
@@ -11,17 +20,14 @@ import {
     Textarea,
 } from "@mantine/core"
 
-// Notifications
-import { Notifications } from "@mantine/notifications"
+interface CreateAgentProps {
+    user_id: number;
+    opened: boolean;
+    addPrompt: (prompt: Prompt) => void;
+    close: () => void;
+}
 
-
-// React
-import { useState } from "react"
-
-// Backend connection
-const BASE_URL = 'http://localhost:3000'
-
-export function CreateAgent({ user_id, addPrompt, opened, close }: { user_id: number, addPrompt: (prompt: Prompt) => void, opened: boolean, close: () => void }) {
+export function CreateAgent({ user_id, opened, addPrompt, close }: CreateAgentProps) {
     const [promptName, setPromptName] = useState<string>("");
     const [promptContent, setPromptContent] = useState<string>("");
 
@@ -37,7 +43,7 @@ export function CreateAgent({ user_id, addPrompt, opened, close }: { user_id: nu
                 throw new Error("Agent description not long enough");
             }
 
-            const res = await fetch(`${BASE_URL}/prompts`, {
+            const res = await fetch(`${API_URL}/prompts`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -52,7 +58,6 @@ export function CreateAgent({ user_id, addPrompt, opened, close }: { user_id: nu
             }
 
             const newPrompt = await res.json();
-
             addPrompt(newPrompt);
         } catch (err) {
             Notifications.show({

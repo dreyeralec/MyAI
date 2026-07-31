@@ -1,5 +1,20 @@
 // Types
-import { Prompt, Session } from "../lib/types"
+import { Prompt, Session } from "../lib/types";
+
+// Notifications
+import { Notifications } from "@mantine/notifications";
+
+// Hooks
+import { useDisclosure } from "@mantine/hooks";
+
+// React
+import { useState, useEffect } from "react";
+
+// Components
+import { SessionSelect, CreateAgent } from './index';
+
+// Config
+import { API_URL } from "../config";
 
 // Mantine
 import {
@@ -8,59 +23,67 @@ import {
     Text,
     Stack,
     ScrollArea,
-} from "@mantine/core"
+} from "@mantine/core";
 
-// Notifications
-import { Notifications } from "@mantine/notifications"
-
-// Hooks
-import { useDisclosure } from "@mantine/hooks"
-
-// React
-import { useState } from "react"
-
-// Components
-import { SessionSelect, CreateAgent } from './index'
-
-// Backend connection
-const BASE_URL = 'http://localhost:3000'
+interface SidebarProps {
+    user_id: number;
+    changeSession: (session_id: number) => void;
+    setDisplayPrompt: (name: string | null) => void;
+}
 
 export function Sidebar({
-    prompts, // prompts fetched from database
-    user_id, // user thats logged in
-    addPrompt, // add prompt to database
-    changeSession, // change session function
-    selectedPrompt, // parent prompt state
-    setSelectedPrompt, // change parent prompt state
-    setDisplayPrompt, // name of selected prompt to display
-    refreshPrompts, // fetch new prompts for ui
-    createSession, // create new session
-}: {
-    prompts: Prompt[],
-    user_id: number,
-    addPrompt: (prompt: Prompt) => void,
-    changeSession: (session_id: number) => void
-    selectedPrompt: Prompt | null
-    setSelectedPrompt: (prompt: Prompt | null) => void
-    setDisplayPrompt: (name: string | null) => void
-    refreshPrompts: (user_id: number) => void,
-    createSession: (user_id: number, title: string, prompt_id: number) => Promise<Session | null>
-}) {
-    // States
-    const [sessions, setSessions] = useState<Session[]>([]); //holds sessions for prompt
-
-    // Modals
+    user_id,
+    changeSession,
+    setDisplayPrompt,
+}: SidebarProps) {
+    const [prompts, setPrompts] = useState<Prompt[]>([]);
+    const [sessions, setSessions] = useState<Session[]>([]);
+    const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
     const [createPromptOpen, { open: openCreatePrompt, close: closeCreatePrompt }] = useDisclosure(false);
     const [selectSessionOpen, { open: openSelectSession, close: closeSelectSession }] = useDisclosure(false);
+
+    /**
+     * Append another prompt object to the array of prompts
+     * 
+     * @param prompt - Prompt to be added
+     */
+    const addPrompt = async (prompt: Prompt) => {
+        setPrompts(prev => [...prev, prompt]);
+    }
+
+    /**
+     * Get all prompts by user
+     * 
+     * @param user_id - User to search prompts for
+     */
+    const loadPrompts = async (user_id: number) => {
+        try {
+            const res = await fetch(`${API_URL}/prompts/user/${user_id}`);
+
+            if (!res.ok) {
+                throw new Error(res.statusText);
+            }
+
+            const data = await res.json();
+
+            setPrompts(data);
+        } catch (err) {
+            Notifications.show({
+                title: "Couldn't Find Agents",
+                message: `${err || "Something went wrong"}`,
+                color: "red"
+            });
+        }
+    }
 
     /**
      * Get existing sessions
      * 
      * @param prompt_id - Query all sessions for this prompt
      */
-    const getSessions = async (prompt_id: number) => {
+    const loadSessions = async (prompt_id: number) => {
         try {
-            const res = await fetch(`${BASE_URL}/chats/session/prompt/${prompt_id}`);
+            const res = await fetch(`${API_URL}/chats/session/prompt/${prompt_id}`);
             const data = await res.json();
 
             if (!res.ok) {
@@ -76,6 +99,10 @@ export function Sidebar({
             });
         }
     }
+
+    useEffect(() => {
+        loadPrompts(user_id);
+    }, [user_id]);
 
     return (
         <>
@@ -104,7 +131,7 @@ export function Sidebar({
                                 style={{ borderColor: "var(--mantine-color-blue-2)" }}
                                 onClick={() => {
                                     setSelectedPrompt(p);
-                                    getSessions(p.prompt_id);
+                                    loadSessions(p.prompt_id);
                                     openSelectSession();
                                 }}
                             >
@@ -137,9 +164,8 @@ export function Sidebar({
                 user_id={user_id}
                 selectedPrompt={selectedPrompt}
                 setDisplayPrompt={setDisplayPrompt}
-                refreshPrompts={refreshPrompts}
-                refreshSessions={getSessions}
-                createSession={createSession}
+                refreshPrompts={loadPrompts}
+                refreshSessions={loadSessions}
                 changeSession={changeSession}
                 opened={selectSessionOpen}
                 close={closeSelectSession}

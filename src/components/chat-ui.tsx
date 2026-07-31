@@ -1,8 +1,16 @@
-//chat component
+// Notifications
+import { Notifications } from "@mantine/notifications";
 
-"use client";
+// React
+import { useState, useEffect, useCallback } from "react";
 
-//Mantine
+// Types
+import { CleanedChat } from "../lib/types";
+
+// Config
+import { API_URL } from "../config";
+
+// Mantine
 import {
     Flex,
     ScrollArea,
@@ -13,26 +21,12 @@ import {
     Center,
 } from "@mantine/core";
 
-//Notifications
-import {
-    Notifications
-} from "@mantine/notifications";
+interface ChatUIProps {
+    session_id: number | null;
+    displayPrompt: string | null;
+}
 
-//React
-import { useState, useEffect, useCallback } from "react";
-
-//Types
-import { CleanedChat } from "../lib/types";
-
-export function ChatUI({
-    baseUrl, //base url for backend routes
-    session_id, //session being displayed
-    displayPrompt //name of prompt for UI
-}: {
-    baseUrl: string
-    session_id: number | null
-    displayPrompt: string | null
-}) {
+export function ChatUI({ session_id, displayPrompt }: ChatUIProps) {
     const [userChat, setUserChat] = useState<string>("");
     const [chatHistory, setChatHistory] = useState<CleanedChat[]>([]);
 
@@ -47,14 +41,14 @@ export function ChatUI({
 
         //add the user's chat to the chat history
         setChatHistory(prev => [...prev, {
-            message_id: crypto.randomUUID(), //need a random id for the .map() function
+            message_id: crypto.randomUUID(), //needed a random id for the .map() function
             content: content,
             role: "user"
         }]);
 
         try {
             //send the user's chat to the model
-            const res = await fetch(`${baseUrl}/chats/model`, {
+            const res = await fetch(`${API_URL}/chats/model`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -100,7 +94,7 @@ export function ChatUI({
     const getChatHistory = useCallback(async (session_id: number, take: number) => {
         try {
             // Use search params for GET request
-            const url = new URL(`${baseUrl}/chats/messages`);
+            const url = new URL(`${API_URL}/chats/messages`);
             url.searchParams.set('session_id', String(session_id));
             url.searchParams.set('take', String(take));
 

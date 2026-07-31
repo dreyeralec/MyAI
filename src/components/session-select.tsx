@@ -1,5 +1,11 @@
 // Types
-import { Prompt, Session } from "../lib/types"
+import { Prompt, Session } from "../lib/types";
+
+// Notifications
+import { Notifications } from "@mantine/notifications";
+
+// Config
+import { API_URL } from "../config";
 
 // Mantine
 import {
@@ -11,47 +17,97 @@ import {
     Flex,
     ScrollArea,
     Group,
-} from "@mantine/core"
+} from "@mantine/core";
 
-//Notifications
-import { Notifications } from "@mantine/notifications"
-
-// Backend connection
-const BASE_URL = 'http://localhost:3000'
+interface SessionSelectProps {
+    sessions: Session[];
+    user_id: number;
+    selectedPrompt: Prompt | null;
+    opened: boolean;
+    setDisplayPrompt: (name: string | null) => void;
+    refreshPrompts: (user_id: number) => void;
+    refreshSessions: (prompt_id: number) => void;
+    changeSession: (session_id: number) => void;
+    close: () => void;
+}
 
 export function SessionSelect({
     sessions,
     user_id,
     selectedPrompt,
+    opened,
     setDisplayPrompt,
     refreshPrompts,
     refreshSessions,
-    createSession,
     changeSession,
-    opened,
-    close
-}: {
-    sessions: Session[]
-    user_id: number
-    selectedPrompt: Prompt | null
-    setDisplayPrompt: (name: string | null) => void
-    refreshPrompts: (user_id: number) => void
-    refreshSessions: (prompt_id: number) => void
-    createSession: (
-        user_id: number,
-        title: string,
-        prompt_id: number
-    ) => Promise<Session | null>
-    changeSession: (session_id: number) => void
-    opened: boolean
-    close: () => void
-}) {
+    close,
+}: SessionSelectProps) {
     /**
-     * Delete the selected Agent
+     * Starts a new chat with the selected Agent
+     */
+    const startNewChat = async () => {
+        try {
+            if (!selectedPrompt) throw new Error("Couldn't find agent")
+
+            const session = await createSession(user_id, selectedPrompt.name, selectedPrompt.prompt_id);
+
+            if (!session) throw new Error("Couldn't find session");
+
+            changeSession(session.session_id);
+            setDisplayPrompt(selectedPrompt.name);
+        } catch (err) {
+            Notifications.show({
+                title: "Couldn't Open Session",
+                message: `${err || "Something went wrong"}`,
+                color: "red"
+            });
+        } finally {
+            close();
+        }
+    }
+
+    /**
+     * Create a new session
+     * 
+     * @param user_id - User that owns the session
+     * @param title - Title of the session
+     * @param prompt_id - Prompt this session is using
+     * @returns Created session object
+     */
+    const createSession = async (user_id: number, title: string, prompt_id: number) => {
+        try {
+            const res = await fetch(`${API_URL}/chats/session`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: user_id,
+                    title: title,
+                    prompt_id: prompt_id,
+                }),
+            });
+
+            if (!res.ok) {
+                throw new Error(res.statusText);
+            }
+
+            const data: Session = await res.json();
+            return data;
+        } catch (err) {
+            Notifications.show({
+                title: "Couldn't Create Session",
+                message: `${err || "Something went wrong"}`,
+                color: "red"
+            });
+            return null;
+        }
+    }
+
+    /**
+     * Deletes the selected Agent
      */
     const deleteAgent = async () => {
         try {
-            const res = await fetch(`${BASE_URL}/prompts/${selectedPrompt?.prompt_id}`, {
+            const res = await fetch(`${API_URL}/prompts/${selectedPrompt?.prompt_id}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -82,7 +138,7 @@ export function SessionSelect({
      */
     const deleteSession = async (session_id: number) => {
         try {
-            const res = await fetch(`${BASE_URL}/chats/${session_id}`, {
+            const res = await fetch(`${API_URL}/chats/${session_id}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -123,26 +179,7 @@ export function SessionSelect({
                     color="blue"
                     radius="md"
                     fullWidth
-                    onClick={async () => {
-                        try {
-                            if (!selectedPrompt) throw new Error("Couldn't find agent")
-
-                            const session = await createSession(user_id, selectedPrompt.name, selectedPrompt.prompt_id);
-
-                            if (!session) throw new Error("Couldn't find session");
-
-                            changeSession(session.session_id);
-                            setDisplayPrompt(selectedPrompt.name);
-                        } catch (err) {
-                            Notifications.show({
-                                title: "Couldn't Open Session",
-                                message: `${err || "Something went wrong"}`,
-                                color: "red"
-                            });
-                        } finally {
-                            close();
-                        }
-                    }}
+                    onClick={() => startNewChat()}
                 >
                     + Start new chat with {selectedPrompt?.name || "Agent"}
                 </Button>

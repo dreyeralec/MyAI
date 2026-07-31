@@ -36,6 +36,12 @@ export function ChatUI({
     const [userChat, setUserChat] = useState<string>("");
     const [chatHistory, setChatHistory] = useState<CleanedChat[]>([]);
 
+    /**
+     * Send chat to the model and handle the response
+     * 
+     * @param session_id - Session the chat belongs to
+     * @param content - Content of the chat
+     */
     const sendChat = useCallback(async (session_id: number, content: string) => {
         setUserChat("");
 
@@ -85,6 +91,12 @@ export function ChatUI({
         }
     }, [session_id]);
 
+    /**
+     * Get the previous chats from a session
+     * 
+     * @param session_id - Session the messages are in
+     * @param take - Optional to specify the amount of messages you want
+     */
     const getChatHistory = useCallback(async (session_id: number, take: number) => {
         try {
             // Use search params for GET request

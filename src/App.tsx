@@ -29,12 +29,20 @@ export default function Home() {
 	const [sessionId, setSessionId] = useState<number | null>(null);
 	const [displayPrompt, setDisplayPrompt] = useState<string | null>(null); //element for displaying prompt name
 
-	//add prompt
+	/**
+	 * Append another prompt object to the array of prompts
+	 * 
+	 * @param prompt - Prompt to be added
+	 */
 	const addPrompt = async (prompt: Prompt) => {
 		setPrompts(prev => [...prev, prompt]);
 	}
 
-	//get all prompts by user
+	/**
+	 * Get all prompts by user
+	 * 
+	 * @param user_id - User to search prompts for
+	 */
 	const getPrompts = async (user_id: number) => {
 		try {
 			const res = await fetch(`${BASE_URL}/prompts/user/${user_id}`);
@@ -55,6 +63,14 @@ export default function Home() {
 		}
 	}
 
+	/**
+	 * Create a new session
+	 * 
+	 * @param user_id - User that owns the session
+	 * @param title - Title of the session
+	 * @param prompt_id - Prompt this session is using
+	 * @returns Created session object
+	 */
 	const createSession = async (user_id: number, title: string, prompt_id: number) => {
 		try {
 			const res = await fetch(`${BASE_URL}/chats/session`, {

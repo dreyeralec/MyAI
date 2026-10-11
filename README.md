@@ -1,14 +1,19 @@
+# MyAI
+
 MyAI lets users create chat sessions with custom context prompts for an OpenAI LLM.
 
-Architecture:
-React.js
-v
-js fetch API
-v
+## Architecture
+
+```text
+React.js with Mantine
+   ↓
+JavaScript Fetch API
+   ↓
 controller.ts
-v
-service.ts > (for chat) calls OpenAI API
-v
+   ↓
+service.ts (for chat, calls OpenAI API)
+   ↓
 repository.ts
-v
-PostgreSQL database
+   ↓
+PostgreSQL Database
+```
